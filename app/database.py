@@ -1,0 +1,51 @@
+import sqlite3
+from sqlite3 import Error
+import logging
+from pathlib import Path
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+DATABASE_FILE = "database.db"
+
+
+def get_db_connection():
+    """Создает и возвращает соединение с SQLite базой данных"""
+    try:
+        # Создаем папку для БД, если ее нет
+        Path(DATABASE_FILE).parent.mkdir(parents=True, exist_ok=True)
+
+        conn = sqlite3.connect(DATABASE_FILE)
+        conn.row_factory = sqlite3.Row  # Для доступа к полям по имени
+        return conn
+    except Error as e:
+        logger.error(f"Error connecting to SQLite database: {e}")
+        return None
+
+
+def init_db():
+    """Инициализирует базу данных, создает таблицы если их нет"""
+    conn = None
+    try:
+        conn = get_db_connection()
+        if conn is not None:
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS ip_addresses (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ip_address TEXT NOT NULL UNIQUE,
+                    description TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            conn.commit()
+            logger.info("Database initialized successfully")
+    except Error as e:
+        logger.error(f"Error initializing database: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+
+# Инициализируем базу данных при импорте модуля
+init_db()
