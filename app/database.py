@@ -34,7 +34,6 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS ip_addresses (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     ip_address TEXT NOT NULL UNIQUE,
-                    description TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
