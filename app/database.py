@@ -10,13 +10,11 @@ DATABASE_FILE = "database.db"
 
 
 def get_db_connection():
-    """Создает и возвращает соединение с SQLite базой данных"""
     try:
-        # Создаем папку для БД, если ее нет
         Path(DATABASE_FILE).parent.mkdir(parents=True, exist_ok=True)
 
         conn = sqlite3.connect(DATABASE_FILE)
-        conn.row_factory = sqlite3.Row  # Для доступа к полям по имени
+        conn.row_factory = sqlite3.Row
         return conn
     except Error as e:
         logger.error(f"Error connecting to SQLite database: {e}")
@@ -24,7 +22,6 @@ def get_db_connection():
 
 
 def init_db():
-    """Инициализирует базу данных, создает таблицы если их нет"""
     conn = None
     try:
         conn = get_db_connection()
@@ -46,5 +43,4 @@ def init_db():
             conn.close()
 
 
-# Инициализируем базу данных при импорте модуля
 init_db()

@@ -88,10 +88,8 @@ def import_from_file(file_path: str):
         if conn:
             try:
                 cursor = conn.cursor()
-                # Очищаем таблицу перед импортом
                 cursor.execute("TRUNCATE TABLE ip_addresses")
 
-                # Добавляем новые IP-адреса
                 for ip in ip_addresses:
                     cursor.execute(
                         "INSERT INTO ip_addresses (ip_address) VALUES (%s)",

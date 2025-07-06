@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 def validate_ip_address(ip_str: str) -> bool:
-    """Проверяет валидность IP-адреса (поддерживает адреса с портами)"""
     try:
         if ':' in ip_str:
             ip, port = ip_str.split(':')
@@ -25,7 +24,6 @@ def validate_ip_address(ip_str: str) -> bool:
 
 
 def create_ip_address(ip_address: str) -> bool:
-    """Добавляет новый IP-адрес в базу данных"""
     if not validate_ip_address(ip_address):
         logger.error(f"Invalid IP address format: {ip_address}")
         return False
@@ -54,7 +52,6 @@ def create_ip_address(ip_address: str) -> bool:
 
 
 def get_all_ip_addresses() -> List[IPAddress]:
-    """Возвращает все IP-адреса из базы данных"""
     conn = None
     try:
         conn = get_db_connection()
@@ -75,7 +72,6 @@ def get_all_ip_addresses() -> List[IPAddress]:
 
 
 def delete_ip_address(ip_address: str) -> bool:
-    """Удаляет IP-адрес из базы данных"""
     conn = None
     try:
         conn = get_db_connection()
@@ -96,7 +92,6 @@ def delete_ip_address(ip_address: str) -> bool:
 
 
 def search_ip_addresses(search_term: str) -> List[IPAddress]:
-    """Ищет IP-адреса по совпадению"""
     conn = None
     try:
         conn = get_db_connection()
@@ -121,7 +116,6 @@ def search_ip_addresses(search_term: str) -> List[IPAddress]:
 
 
 def import_from_file(file_path: str) -> bool:
-    """Импортирует IP-адреса из файла"""
     try:
         with open(file_path, 'r') as file:
             ip_addresses = [line.strip() for line in file if line.strip() and validate_ip_address(line.strip())]
@@ -150,7 +144,6 @@ def import_from_file(file_path: str) -> bool:
 
 
 def export_to_file(file_path: str) -> bool:
-    """Экспортирует IP-адреса в файл"""
     try:
         ip_addresses = get_all_ip_addresses()
         with open(file_path, 'w') as file:
