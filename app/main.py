@@ -63,15 +63,42 @@ async def export_ips():
     export_to_file(IP_FILE_PATH)
     return RedirectResponse(url="/", status_code=303)
 
+
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(request: Request, file: UploadFile = File(None)):
+    if not file or file.filename == '':
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "error": "No file selected",
+                "ip_addresses": get_all_ip_addresses()
+            },
+            status_code=400
+        )
+
+    conn = None
     try:
         contents = await file.read()
         with open(IP_FILE_PATH, 'wb') as f:
             f.write(contents)
-        import_from_file(IP_FILE_PATH)
-        return RedirectResponse(url="/", status_code=303)
+
+        if import_from_file(IP_FILE_PATH):
+            return RedirectResponse(url="/", status_code=303)
+        else:
+            raise Exception("Failed to import IPs from file")
+
     except Exception as e:
-        return {"error": str(e)}
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "error": str(e),
+                "ip_addresses": get_all_ip_addresses()
+            },
+            status_code=500
+        )
     finally:
+        if conn:
+            conn.close()
         await file.close()
