@@ -1,7 +1,7 @@
 import ipaddress
 from typing import List
-from .database import get_db_connection
-from .models import IPAddress
+from app.core.database import get_db_connection
+from app.models.models import IPAddress
 import logging
 from sqlite3 import Error
 
