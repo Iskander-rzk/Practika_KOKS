@@ -1,5 +1,5 @@
-from .database import get_db_connection
-from .models import IPAddress
+from app.core.database import get_db_connection
+from app.models.models import IPAddress
 
 
 def create_ip_address(ip_address: str, description: str = ""):
