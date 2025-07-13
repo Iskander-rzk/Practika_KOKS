@@ -80,29 +80,6 @@ def delete_ip_address(ip_address: str) -> bool:
             conn.close()
 
 
-def search_ip_addresses(search_term: str) -> list[IPAddressDB]:
-    conn = get_db_connection()
-    if not conn:
-        return []
-
-    try:
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT id, ip_address FROM ip_addresses WHERE ip_address LIKE ?",
-            (f"%{search_term}%",)
-        )
-        rows = cursor.fetchall()
-        return [IPAddressDB(id=row[0], ip_address=row[1]) for row in rows]
-    except Error as e:
-        logger.error(f"Error searching IP addresses: {e}")
-        return []
-    finally:
-        if conn:
-            conn.close()
-
-
-
-
 def import_from_file(file_path: str) -> bool:
     try:
         with open(file_path, 'r') as file:
@@ -114,9 +91,7 @@ def import_from_file(file_path: str) -> bool:
 
         try:
             cursor = conn.cursor()
-            # Clear existing data
             cursor.execute("DELETE FROM ip_addresses")
-            # Insert new data
             for ip in ip_addresses:
                 cursor.execute(
                     "INSERT INTO ip_addresses (ip_address) VALUES (?)",
@@ -145,3 +120,25 @@ def export_to_file(file_path: str) -> bool:
     except Exception as e:
         logger.error(f"Error exporting IPs: {e}")
         return False
+
+def search_ip_addresses(search_term: str) -> list[IPAddressDB]:
+    conn = get_db_connection()
+    if not conn:
+        return []
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, ip_address FROM ip_addresses WHERE ip_address LIKE ?",
+            (f"%{search_term}%",)
+        )
+        rows = cursor.fetchall()
+        return [IPAddressDB(id=row[0], ip_address=row[1]) for row in rows]
+    except Error as e:
+        logger.error(f"Error searching IP addresses: {e}")
+        return []
+    finally:
+        if conn:
+            conn.close()
+
+

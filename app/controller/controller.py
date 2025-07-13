@@ -1,6 +1,8 @@
 from app.crud import crud
 from app.models import models
+from fastapi import UploadFile
 
+IP_FILE_PATH = "ip_addresses.txt"
 
 def add_ip(input: models.IPAddressRequest) -> models.IPAddressResponse:
     if not input.is_valid():
@@ -32,19 +34,44 @@ def remove_ip(ip_address: str) -> models.IPAddressResponse:
     ip_addresses = crud.get_all_ip_addresses()
     return models.IPAddressResponse(ip_addresses=ip_addresses)
 
-#def search_ip(input: models.IPAddressRequest):
-#    results = search_ip_addresses(q)
-#    return templates.TemplateResponse(
-#        "index.html",
-#        {
-#            "request": request,
-#            "ip_addresses": results,
-#            "search_term": q
-#        }
-#    )
 
-#def remove_ip(ip_address: str):
-#    success = delete_ip_address(ip_address)
-#    if not success:
-#        return RedirectResponse(url="/?error=Failed to delete IP", status_code=303)
-#    return RedirectResponse(url="/?message=IP deleted successfully", status_code=303)
+def export_ips() -> models.OperationResponse:
+    ip_addresses = crud.get_all_ip_addresses()
+    try:
+        with open(IP_FILE_PATH, "w") as f:
+            for ip in ip_addresses:
+                f.write(f"{ip.ip_address}\n")
+        return models.OperationResponse(message="Export successful")
+    except Exception:
+        return models.OperationResponse(error=models.Errors.DBError)
+
+
+def import_ips() -> models.OperationResponse:
+    try:
+        with open(IP_FILE_PATH, "r") as f:
+            ips = [line.strip() for line in f.readlines()]
+
+        for ip in ips:
+            if not crud.select(ip):
+                crud.create_ip_address(ip)
+        return models.OperationResponse(message="Import successful")
+    except Exception:
+        return models.OperationResponse(error=models.Errors.Invalid)
+
+
+async def upload_and_import(file: UploadFile) -> models.OperationResponse:
+    content = await file.read()
+    try:
+        ips = content.decode().splitlines()
+        valid_ips = []
+        for ip in ips:
+            req = models.IPAddressRequest(ip_address=ip)
+            if req.is_valid():
+                valid_ips.append(ip)
+
+        for ip in valid_ips:
+            if not crud.select(ip):
+                crud.create_ip_address(ip)
+        return models.OperationResponse(message="Upload successful")
+    except Exception:
+        return models.OperationResponse(error=models.Errors.Invalid)

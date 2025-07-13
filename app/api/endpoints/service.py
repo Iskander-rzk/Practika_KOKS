@@ -1,37 +1,61 @@
-from fastapi import APIRouter, UploadFile, File
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, UploadFile, File, Request
+from app.core.templates import templates
+from app.controller import controller
+from app.models.models import Errors
 from app.crud import crud
+from fastapi.responses import RedirectResponse
 
 router = APIRouter()
-IP_FILE_PATH = "ip_addresses.txt"
 
+ERROR_MESSAGES = {
+    Errors.DBError: "Database operation failed",
+    Errors.Invalid: "Invalid file format",
+}
 
 @router.post("/export")
-async def export_ips():
-    if crud.export_to_file(IP_FILE_PATH):
-        return RedirectResponse(url="/?message=IPs exported", status_code=303)
-    return RedirectResponse(url="/?error=Export failed", status_code=303)
-
+def export_ips(request: Request):
+    response = controller.export_ips()
+    if response.error:
+        error_msg = ERROR_MESSAGES.get(response.error, "Export failed")
+        ip_addresses = crud.get_all_ip_addresses()
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "error": error_msg,
+                "ip_addresses": ip_addresses
+            }
+        )
+    return RedirectResponse(url="/?message=IPs exported successfully", status_code=303)
 
 @router.post("/import")
-async def import_ips():
-    if crud.import_from_file(IP_FILE_PATH):
-        return RedirectResponse(url="/?message=IPs imported", status_code=303)
-    return RedirectResponse(url="/?error=Import failed", status_code=303)
-
+def import_ips(request: Request):
+    response = controller.import_ips()
+    if response.error:
+        error_msg = ERROR_MESSAGES.get(response.error, "Import failed")
+        ip_addresses = crud.get_all_ip_addresses()
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "error": error_msg,
+                "ip_addresses": ip_addresses
+            }
+        )
+    return RedirectResponse(url="/?message=IPs imported successfully", status_code=303)
 
 @router.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
-    if not file.filename.endswith('.txt'):
-        return RedirectResponse(url="/?error=Invalid file type", status_code=303)
-
-    try:
-        contents = await file.read()
-        with open(IP_FILE_PATH, 'wb') as f:
-            f.write(contents)
-
-        if crud.import_from_file(IP_FILE_PATH):
-            return RedirectResponse(url="/?message=File imported", status_code=303)
-        return RedirectResponse(url="/?error=Import failed", status_code=303)
-    except Exception as e:
-        return RedirectResponse(url=f"/?error={str(e)}", status_code=303)
+async def upload_file(request: Request, file: UploadFile = File(...)):
+    response = await controller.upload_and_import(file)
+    if response.error:
+        error_msg = ERROR_MESSAGES.get(response.error, "File processing failed")
+        ip_addresses = crud.get_all_ip_addresses()
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "error": error_msg,
+                "ip_addresses": ip_addresses
+            }
+        )
+    return RedirectResponse(url="/?message=File uploaded and IPs imported", status_code=303)

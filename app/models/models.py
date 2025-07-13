@@ -34,3 +34,7 @@ class Errors(enum.Enum):
 class IPAddressResponse(BaseModel):
     error: Optional[Errors] = None
     ip_addresses: List[IPAddressDB] = []
+
+class OperationResponse(BaseModel):
+    error: Optional[Errors] = None
+    message: Optional[str] = None

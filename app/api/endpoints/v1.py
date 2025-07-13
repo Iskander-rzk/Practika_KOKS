@@ -6,18 +6,17 @@ from app.models import models
 
 router = APIRouter()
 
+error_messages = {
+            models.Errors.Invalid: "Invalid IP address",
+            models.Errors.Exist: "IP address exists",
+            models.Errors.DBError: "Database error"
+        }
 
 @router.post("/add")
 def add_ip_address(request: Request, ip: str = Form(...)):
     input = models.IPAddressRequest(ip_address=ip)
     result = controller.add_ip(input)
-
     if result.error:
-        error_messages = {
-            models.Errors.Invalid: "Invalid IP address",
-            models.Errors.Exist: "IP address exists",
-            models.Errors.DBError: "Database error"
-        }
         return templates.TemplateResponse(
             "index.html",
             {
