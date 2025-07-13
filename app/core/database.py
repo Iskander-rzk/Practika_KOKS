@@ -19,24 +19,25 @@ def get_db_connection():
 
 
 def init_db():
-    conn = get_db_connection()
-    if not conn:
-        return
-
+    conn = None
     try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS ip_addresses (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                ip_address TEXT NOT NULL UNIQUE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        conn.commit()
-    except sqlite3.Error as e:
-        logger.error(f"Database initialization error: {e}")
+        conn = get_db_connection()
+        if conn is not None:
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS ip_addresses (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ip_address TEXT NOT NULL UNIQUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            conn.commit()
+            logger.info("Database initialized successfully")
+    except Error as e:
+        logger.error(f"Error initializing database: {e}")
     finally:
-        conn.close()
+        if conn:
+            conn.close()
 
 
 init_db()

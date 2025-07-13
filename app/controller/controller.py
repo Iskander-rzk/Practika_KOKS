@@ -18,6 +18,7 @@ def add_ip(input: models.IPAddressRequest) -> models.IPAddressResponse:
     return models.IPAddressResponse(ip_addresses=ip_addresses)
 
 
+
 def search_ip(q: str) -> models.IPAddressResponse:
     results = crud.search_ip_addresses(q)
     return models.IPAddressResponse(ip_addresses=results)

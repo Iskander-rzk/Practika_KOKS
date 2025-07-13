@@ -7,6 +7,7 @@ class IPAddressDB(BaseModel):
     id: Optional[int] = None
     ip_address: str
 
+
 class IPAddressRequest(BaseModel):
     ip_address: str
 

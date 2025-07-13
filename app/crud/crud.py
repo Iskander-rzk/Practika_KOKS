@@ -7,11 +7,26 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def select(ip_address: str) -> bool:
+    conn = get_db_connection()
+    if not conn:
+        return False
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT 1 FROM ip_addresses WHERE ip_address = ?",
+            (ip_address,)
+        )
+        return bool(cursor.fetchone())
+    except Error:
+        return False
+    finally:
+        conn.close()
+
 def create_ip_address(ip_address: str) -> bool:
     conn = get_db_connection()
     if not conn:
         return False
-
     try:
         cursor = conn.cursor()
         cursor.execute(
@@ -19,13 +34,11 @@ def create_ip_address(ip_address: str) -> bool:
             (ip_address,)
         )
         conn.commit()
-        return cursor.rowcount > 0
-    except Error as e:
-        logger.error(f"Error creating IP address: {e}")
+        return True
+    except Error:
         return False
     finally:
-        if conn:
-            conn.close()
+        conn.close()
 
 
 def get_all_ip_addresses() -> list[IPAddressDB]:
@@ -88,25 +101,6 @@ def search_ip_addresses(search_term: str) -> list[IPAddressDB]:
             conn.close()
 
 
-def select(ip_address: str) -> IPAddressDB:
-    conn = get_db_connection()
-    if not conn:
-        return None
-
-    try:
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT id, ip_address FROM ip_addresses WHERE ip_address = ?",
-            (ip_address,)
-        )
-        row = cursor.fetchone()
-        return IPAddressDB(id=row[0], ip_address=row[1]) if row else None
-    except Error as e:
-        logger.error(f"Error selecting IP address: {e}")
-        return None
-    finally:
-        if conn:
-            conn.close()
 
 
 def import_from_file(file_path: str) -> bool:

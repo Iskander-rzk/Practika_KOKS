@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Request
 from app.crud import crud
 from app.core.templates import templates
-
 router = APIRouter()
 
 
