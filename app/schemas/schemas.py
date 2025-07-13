@@ -1,5 +1,5 @@
 from app.core.database import get_db_connection
-from app.models.models import IPAddress
+from app.models.models import IPAddressDB
 
 
 def create_ip_address(ip_address: str, description: str = ""):
@@ -29,7 +29,7 @@ def get_all_ip_addresses():
             query = "SELECT * FROM ip_addresses"
             cursor.execute(query)
             result = cursor.fetchall()
-            return [IPAddress(**row) for row in result]
+            return [IPAddressDB(**row) for row in result]
         except Error as e:
             print(f"Error fetching IP addresses: {e}")
             return []
@@ -68,7 +68,7 @@ def search_ip_addresses(search_term: str):
             search_pattern = f"%{search_term}%"
             cursor.execute(query, (search_pattern, search_pattern))
             result = cursor.fetchall()
-            return [IPAddress(**row) for row in result]
+            return [IPAddressDB(**row) for row in result]
         except Error as e:
             print(f"Error searching IP addresses: {e}")
             return []
