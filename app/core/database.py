@@ -1,23 +1,20 @@
 import sqlite3
-from sqlite3 import Error
 import logging
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 DATABASE_FILE = "database.db"
 
 
 def get_db_connection():
     try:
         Path(DATABASE_FILE).parent.mkdir(parents=True, exist_ok=True)
-
         conn = sqlite3.connect(DATABASE_FILE)
         conn.row_factory = sqlite3.Row
         return conn
-    except Error as e:
-        logger.error(f"Error connecting to SQLite database: {e}")
+    except sqlite3.Error as e:
+        logger.error(f"Database connection error: {e}")
         return None
 
 
