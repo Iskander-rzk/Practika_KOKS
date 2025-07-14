@@ -32,12 +32,11 @@ async def search_ips(request: Request, ip: str = ""):
     response = controller.search_ip(ip)
 
     if response.error:
-        all_ips = crud.get_all_ip_addresses()
         return templates.TemplateResponse(
             "index.html",
             {
                 "request": request,
-                "ip_addresses": all_ips,
+                "ip_addresses": response.ip_addresses,
                 "search_term": ip,
                 "error": response.error.string()
             }

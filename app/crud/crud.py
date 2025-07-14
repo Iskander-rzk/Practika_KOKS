@@ -2,24 +2,29 @@ import logging
 from sqlite3 import Error
 from app.core.database import get_db_connection
 from app.models.models import IPAddressDB
+from typing import Optional
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def select(ip_address: str) -> bool:
+def select(ip_address: str) -> Optional[IPAddressDB]:
     conn = get_db_connection()
     if not conn:
-        return False
+        return None
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT 1 FROM ip_addresses WHERE ip_address = ?",
+            "SELECT id, ip_address FROM ip_addresses WHERE ip_address = ?",
             (ip_address,)
         )
-        return bool(cursor.fetchone())
-    except Error:
-        return False
+        row = cursor.fetchone()
+        if row:
+            return IPAddressDB(id=row[0], ip_address=row[1])
+        return None
+    except Error as e:
+        print(f"Database error in select: {e}")
+        return None
     finally:
         conn.close()
 

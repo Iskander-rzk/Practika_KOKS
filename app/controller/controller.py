@@ -20,13 +20,16 @@ def add_ip(input: models.IPAddressRequest) -> models.IPAddressResponse:
     return models.IPAddressResponse(ip_addresses=ip_addresses)
 
 
-def search_ip(ip: str) -> models.IPAddressResponse:
-    temp_request = models.IPAddressRequest(ip_address=ip)
-
+def search_ip(q: str) -> models.IPAddressResponse:
+    temp_request = models.IPAddressRequest(ip_address=q)
     if not temp_request.is_valid():
-        return models.IPAddressResponse(error=models.Errors.Invalid)
+        all_ips = crud.get_all_ip_addresses()
+        return models.IPAddressResponse(
+            error=models.Errors.Invalid,
+            ip_addresses=all_ips
+        )
 
-    results = crud.search_ip_addresses(ip)
+    results = crud.search_ip_addresses(q)
     return models.IPAddressResponse(ip_addresses=results)
 
 
