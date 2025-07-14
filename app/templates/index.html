@@ -57,7 +57,7 @@
 
     <div class="form-group">
         <form action="/v1/search" method="get">
-            <input type="text" name="q" placeholder="Search IPs..." value="{{ search_term or '' }}">
+            <input type="text" name="ip" placeholder="Search IPs..." value="{{ search_term or '' }}">
             <button type="submit">Search</button>
             {% if search_term %}
                 <a href="/">Clear</a>
