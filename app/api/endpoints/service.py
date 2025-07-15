@@ -42,13 +42,13 @@ def import_ips(request: Request):
 def upload_file(request: Request, file: UploadFile = File(...)):
     response = controller.upload_and_import(file)
     if response.error:
+        all_ips = controller.search_ip("").ip_addresses
         return templates.TemplateResponse(
             "index.html",
             {
                 "request": request,
                 "error": response.error.string(),
-                "ip_addresses": controller.get_all_ips()
+                "ip_addresses": all_ips
             }
         )
     return RedirectResponse(url="/?message=File uploaded and IPs imported", status_code=303)
-
