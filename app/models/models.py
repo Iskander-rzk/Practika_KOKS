@@ -50,3 +50,4 @@ class IPAddressResponse(BaseModel):
 class OperationResponse(BaseModel):
     error: Optional[Errors] = None
     message: Optional[str] = None
+    ip_addresses: List[IPAddressDB] = []
