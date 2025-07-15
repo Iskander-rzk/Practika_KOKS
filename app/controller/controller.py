@@ -23,15 +23,15 @@ def add_ip_for_handler(input: models.IPAddressRequest) -> models.IPAddressRespon
     return result
 
 
-def search_ip(q: str) -> models.IPAddressResponse:
-    temp_request = models.IPAddressRequest(ip_address=q)
+def search_ip(ip: str) -> models.IPAddressResponse:
+    temp_request = models.IPAddressRequest(ip_address=ip)
     if not temp_request.is_valid():
         all_ips = crud.get_all_ip_addresses()
         return models.IPAddressResponse(
             error=models.Errors.Invalid,
             ip_addresses=all_ips
         )
-    results = crud.search_ip_addresses(q)
+    results = crud.search_ip_addresses(ip)
     return models.IPAddressResponse(ip_addresses=results)
 
 
@@ -55,7 +55,7 @@ def import_ips() -> models.OperationResponse:
     if not os.path.exists(IP_FILE_PATH):
         return models.OperationResponse(error=models.Errors.Invalid)
 
-    ip_addresses = []
+    ip_addresses=crud.get_all_ip_addresses()
     with open(IP_FILE_PATH, 'r') as f:
         for line in f:
             ip = line.strip()
@@ -66,7 +66,7 @@ def import_ips() -> models.OperationResponse:
 
 def upload_and_import(file: UploadFile) -> models.OperationResponse:
     content = file.file.read()
-    ip_addresses = []
+    ip_addresses=crud.get_all_ip_addresses()
 
     for line in content.decode('utf-8').splitlines():
         ip = line.strip()
