@@ -39,16 +39,16 @@ def import_ips(request: Request):
     return RedirectResponse(url="/?message=IPs imported successfully", status_code=303)
 
 @router.post("/upload")
-async def upload_file(request: Request, file: UploadFile = File(...)):
-    response = await controller.upload_and_import(file)
+def upload_file(request: Request, file: UploadFile = File(...)):
+    response = controller.upload_and_import(file)
     if response.error:
-        ip_addresses = crud.get_all_ip_addresses()
         return templates.TemplateResponse(
             "index.html",
             {
                 "request": request,
                 "error": response.error.string(),
-                "ip_addresses": ip_addresses
+                "ip_addresses": controller.get_all_ips()
             }
         )
     return RedirectResponse(url="/?message=File uploaded and IPs imported", status_code=303)
+

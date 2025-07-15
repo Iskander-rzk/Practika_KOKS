@@ -3,7 +3,6 @@ from fastapi.responses import RedirectResponse
 from app.core.templates import templates
 from app.controller import controller
 from app.models import models
-from app.crud import crud
 
 router = APIRouter()
 
