@@ -55,22 +55,23 @@ def import_ips() -> models.OperationResponse:
     if not os.path.exists(IP_FILE_PATH):
         return models.OperationResponse(error=models.Errors.Invalid)
 
-    ip_addresses=crud.get_all_ip_addresses()
+
     with open(IP_FILE_PATH, 'r') as f:
         for line in f:
             ip = line.strip()
             if ip:
                 add_ip_for_handler(models.IPAddressRequest(ip_address=ip))
+    ip_addresses=crud.get_all_ip_addresses()
+
     return models.OperationResponse(message="Import successful", ip_addresses=ip_addresses)
 
 
 def upload_and_import(file: UploadFile) -> models.OperationResponse:
     content = file.file.read()
-    ip_addresses=crud.get_all_ip_addresses()
-
     for line in content.decode('utf-8').splitlines():
         ip = line.strip()
         if ip:
             add_ip_for_handler(models.IPAddressRequest(ip_address=ip))
+    ip_addresses=crud.get_all_ip_addresses()
 
     return models.OperationResponse(message="Upload completed", ip_addresses=ip_addresses)
