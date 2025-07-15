@@ -2,24 +2,29 @@ import logging
 from sqlite3 import Error
 from app.core.database import get_db_connection
 from app.models.models import IPAddressDB
+from typing import Optional
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def select(ip_address: str) -> bool:
+def select(ip_address: str) -> Optional[IPAddressDB]:
     conn = get_db_connection()
     if not conn:
-        return False
+        return None
     try:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT 1 FROM ip_addresses WHERE ip_address = ?",
+            "SELECT id, ip_address FROM ip_addresses WHERE ip_address = ?",
             (ip_address,)
         )
-        return bool(cursor.fetchone())
-    except Error:
-        return False
+        row = cursor.fetchone()
+        if row:
+            return IPAddressDB(id=row[0], ip_address=row[1])
+        return None
+    except Error as e:
+        print(f"Database error in select: {e}")
+        return None
     finally:
         conn.close()
 
@@ -80,29 +85,6 @@ def delete_ip_address(ip_address: str) -> bool:
             conn.close()
 
 
-def search_ip_addresses(search_term: str) -> list[IPAddressDB]:
-    conn = get_db_connection()
-    if not conn:
-        return []
-
-    try:
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT id, ip_address FROM ip_addresses WHERE ip_address LIKE ?",
-            (f"%{search_term}%",)
-        )
-        rows = cursor.fetchall()
-        return [IPAddressDB(id=row[0], ip_address=row[1]) for row in rows]
-    except Error as e:
-        logger.error(f"Error searching IP addresses: {e}")
-        return []
-    finally:
-        if conn:
-            conn.close()
-
-
-
-
 def import_from_file(file_path: str) -> bool:
     try:
         with open(file_path, 'r') as file:
@@ -114,9 +96,7 @@ def import_from_file(file_path: str) -> bool:
 
         try:
             cursor = conn.cursor()
-            # Clear existing data
             cursor.execute("DELETE FROM ip_addresses")
-            # Insert new data
             for ip in ip_addresses:
                 cursor.execute(
                     "INSERT INTO ip_addresses (ip_address) VALUES (?)",
@@ -145,3 +125,25 @@ def export_to_file(file_path: str) -> bool:
     except Exception as e:
         logger.error(f"Error exporting IPs: {e}")
         return False
+
+def search_ip_addresses(search_term: str) -> list[IPAddressDB]:
+    conn = get_db_connection()
+    if not conn:
+        return []
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, ip_address FROM ip_addresses WHERE ip_address LIKE ?",
+            (f"%{search_term}%",)
+        )
+        rows = cursor.fetchall()
+        return [IPAddressDB(id=row[0], ip_address=row[1]) for row in rows]
+    except Error as e:
+        logger.error(f"Error searching IP addresses: {e}")
+        return []
+    finally:
+        if conn:
+            conn.close()
+
+
