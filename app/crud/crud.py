@@ -1,9 +1,10 @@
 import logging
-from sqlite3 import Error
-from app.core.database import get_db_connection
+from sqlite3 import Error, IntegrityError
 from app.models.models import IPAddressDB
 from typing import Optional
-
+from app.core.database import get_db_connection
+from app.core.user_database import get_user_db_connection
+from app.models.models import UserDB
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -147,3 +148,100 @@ def search_ip_addresses(search_term: str) -> list[IPAddressDB]:
             conn.close()
 
 
+
+def get_user_by_username(username: str) -> Optional[UserDB]:
+    conn = get_user_db_connection()
+    if not conn:
+        return None
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, username, password_hash FROM users WHERE username = ?",
+            (username,)
+        )
+        row = cursor.fetchone()
+        if row:
+            return UserDB(
+                id=row[0],
+                username=row[1],
+                password_hash=row[2]
+            )
+        return None
+    except Error as e:
+        logger.error(f"Error getting user by username: {e}")
+        return None
+    finally:
+        conn.close()
+
+def create_user(username: str, password_hash: str) -> Optional[UserDB]:
+    conn = get_user_db_connection()
+    if not conn:
+        logger.error("Failed to connect to database")
+        return None
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+            (username, password_hash)
+        )
+        conn.commit()
+        logger.info(f"User {username} created successfully")
+        return UserDB(
+            id=cursor.lastrowid,
+            username=username,
+            password_hash=password_hash
+        )
+    except IntegrityError:
+        logger.error(f"Username {username} already exists")
+        return None
+    except Error as e:
+        logger.error(f"Database error: {e}")
+        return None
+    finally:
+        conn.close()
+
+def create_session(user_id: int, token: str) -> bool:
+    conn = get_user_db_connection()
+    if not conn:
+        return False
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO sessions (user_id, token) VALUES (?, ?)",
+            (user_id, token)
+        )
+        conn.commit()
+        return True
+    except Error as e:
+        logger.error(f"Error creating session: {e}")
+        return False
+    finally:
+        conn.close()
+
+def get_user_by_session(token: str) -> Optional[UserDB]:
+    conn = get_user_db_connection()
+    if not conn:
+        return None
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT users.id, users.username, users.password_hash 
+            FROM users JOIN sessions ON users.id = sessions.user_id
+            WHERE sessions.token = ?
+        """, (token,))
+        row = cursor.fetchone()
+        if row:
+            return UserDB(
+                id=row[0],
+                username=row[1],
+                password_hash=row[2]
+            )
+        return None
+    except Error as e:
+        logger.error(f"Error getting user by session: {e}")
+        return None
+    finally:
+        conn.close()
