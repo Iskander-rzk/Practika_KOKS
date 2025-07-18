@@ -25,8 +25,8 @@ async def login(request: Request, username: str = Form(...), password: str = For
             {"request": request, "error": response.error.string(), "username": username}
         )
 
-    redirect = RedirectResponse(url=f"/user/{response.user.id}", status_code=303)
-    redirect.set_cookie(key="session_token", value=response.message)
+    redirect = RedirectResponse(url=f"/", status_code=303)
+    redirect.set_cookie(key="session_token", value=response.token)
     return redirect
 
 
@@ -34,7 +34,7 @@ async def login(request: Request, username: str = Form(...), password: str = For
 async def register_page(request: Request):
     if get_current_user(request):
         user = get_current_user(request)
-        return RedirectResponse(url=f"/user/{user.id}", status_code=303)
+        return RedirectResponse(url=f"/", status_code=303)
     return templates.TemplateResponse("register.html", {"request": request})
 
 
@@ -60,35 +60,35 @@ async def register(
 
     return RedirectResponse(url="/user/login?message=Registration+successful", status_code=303)
 
-@router.get("/{user_id}")
-async def user_page(
-        request: Request,
-        user_id: int,
-        search_term: str = "",
-        message: str = "",
-        error: str = ""
-):
-    current_user = get_current_user(request)
-    if not current_user or current_user.id != user_id:
-        return RedirectResponse(url="/user/login", status_code=303)
-
-    if search_term:
-        ip_response = search_ip(search_term)
-        ip_addresses = ip_response.ip_addresses
-    else:
-        ip_addresses = crud.get_all_ip_addresses()
-
-    return templates.TemplateResponse(
-        "user_dashboard.html",
-        {
-            "request": request,
-            "current_user": current_user,
-            "ip_addresses": ip_addresses,
-            "search_term": search_term,
-            "message": message,
-            "error": error
-        }
-    )
+# @router.get("/{user_id}")
+# async def user_page(
+#         request: Request,
+#         user_id: int,
+#         search_term: str = "",
+#         message: str = "",
+#         error: str = ""
+# ):
+#     current_user = get_current_user(request)
+#     if not current_user or current_user.id != user_id:
+#         return RedirectResponse(url="/user/login", status_code=303)
+#
+#     if search_term:
+#         ip_response = search_ip(search_term)
+#         ip_addresses = ip_response.ip_addresses
+#     else:
+#         ip_addresses = crud.get_all_ip_addresses()
+#
+#     return templates.TemplateResponse(
+#         "user_dashboard.html",
+#         {
+#             "request": request,
+#             "current_user": current_user,
+#             "ip_addresses": ip_addresses,
+#             "search_term": search_term,
+#             "message": message,
+#             "error": error
+#         }
+#     )
 
 
 @router.post("/logout")

@@ -118,4 +118,4 @@ def login_user(user_data: models.UserLogin) -> models.AuthResponse:
     if not crud.create_session(user.id, session_token):
         return models.AuthResponse(error=models.Errors.DBError)
 
-    return models.AuthResponse(message=session_token, user=user)
+    return models.AuthResponse(token=session_token, user=user)
