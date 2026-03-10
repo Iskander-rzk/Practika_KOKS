@@ -6,7 +6,6 @@
 <p align="center">
    <img src="https://img.shields.io/badge/Python-3.9+-blue" alt="Python Version">
    <img src="https://img.shields.io/badge/FastAPI-0.115.0-teal" alt="FastAPI Version">
-   <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
 </p>
 
 ## About
